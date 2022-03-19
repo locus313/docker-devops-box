@@ -28,13 +28,13 @@ docker info
 To build container locally from source:
 
 ```bash
-docker build --rm -t nmarus/devops-box:latest .
+docker build --rm -t locus313/devops-box:latest .
 ```
 
 To pull container from Docker Hub: (not yet active)
 
 ```bash
-docker pull nmarus/devops-box:latest
+docker pull locus313/devops-box:latest
 ```
 
 ## Setting up CLI
@@ -95,7 +95,7 @@ variable `UNSAFE_WRITE_ROOT=true` before executing the script
 
 The MIT License (MIT)
 
-Copyright (c) 2020 <nmarus@gmail.com>
+Copyright (c) 2022 <pat@lo5t.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
