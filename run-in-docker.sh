@@ -2,7 +2,7 @@
 
 set -e
 
-IMAGE=nmarus/devops-box:latest
+IMAGE=locus313/devops-box:latest
 DOCKER_HOSTNAME=devops
 CONTAINER_USER=devops
 
