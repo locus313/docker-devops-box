@@ -95,7 +95,7 @@ variable `UNSAFE_WRITE_ROOT=true` before executing the script
 
 The MIT License (MIT)
 
-Copyright (c) 2022 <pat@lo5t.com>
+Copyright (c) 2020 <nmarus@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
