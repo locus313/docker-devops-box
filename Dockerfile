@@ -111,6 +111,11 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
   && ./aws/install \
   && rm -rf ./aws
 
+# Install AWS Session Manager plugin
+RUN curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" \
+        -o session-manager-plugin.deb
+RUN dpkg -i session-manager-plugin.deb
+
 # enable x11 apps
 RUN apt-get update \
   && apt-get install -yq --no-install-recommends \
