@@ -48,15 +48,11 @@ if [[ "${PWD}" = "${HOME}"* ]]; then
     --volume ${LOCAL_HOME}:${REMOTE_HOME} \
     ${IMAGE} sh -c "cd ${REMOTE_PWD} && ${CMD} ${ARGS}"
 else # else is run from somewhere else in fs...
-  LOCAL_HOME="/"
+  LOCAL_HOME="/home/$(basename ${HOME})"
   REMOTE_HOME="/host"
-  REMOTE_PWD="/host${PWD}"
-
-  if [[ "$UNSAFE_WRITE_ROOT" = "true" ]]; then
-    ROOT_VOL_MAP=${LOCAL_HOME}:${REMOTE_HOME}
-  else
-    ROOT_VOL_MAP=${LOCAL_HOME}:${REMOTE_HOME}:ro
-  fi
+  REMOTE_PWD="${REMOTE_HOME}/current"
+  ROOT_VOL_HOME="/home/$(basename ${HOME})"
+  ROOT_VOL_MAP=${LOCAL_HOME}:${ROOT_VOL_HOME}
 
   docker run -it --rm \
     ${DOCKER_OPTS} \
