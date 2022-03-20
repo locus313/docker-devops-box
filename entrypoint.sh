@@ -2,7 +2,7 @@
 
 # fix docker socket permissions in container
 sudo chown root:docker /var/run/docker.sock &> /dev/null
-sudo chmod 775 /var/run/docker.sock &> /dev/null
+sudo chmod 644 /var/run/docker.sock &> /dev/null
 
 # link files from host user home volume into container user home volume
 HOME_FILES=$(ls -a1 /home/${HOST_USER})

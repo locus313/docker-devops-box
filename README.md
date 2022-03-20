@@ -28,13 +28,13 @@ docker info
 To build container locally from source:
 
 ```bash
-docker build --rm -t nmarus/devops-box:latest .
+docker build --rm -t locus313/devops-box:latest .
 ```
 
-To pull container from Docker Hub: (not yet active)
+To pull container from gitHub container registry:
 
 ```bash
-docker pull nmarus/devops-box:latest
+docker pull ghcr.io/locus313/docker-devops-box:latest
 ```
 
 ## Setting up CLI
