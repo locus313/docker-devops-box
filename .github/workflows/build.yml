@@ -1,0 +1,24 @@
+name: 'build'
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+
+jobs:
+  build:
+    name: 'Build'
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Build:checkout"
+        uses: actions/checkout@v2
+
+      - name: 'Build:dockerimage'
+        uses: docker/build-push-action@v1
+        with:
+          registry: ghcr.io
+          username: "locus313"
+          password: ${{ secrets.PAT }}
+          repository: locus313/docker-devops-box
+          tags: latest
