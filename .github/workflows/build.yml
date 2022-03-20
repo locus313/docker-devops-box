@@ -34,6 +34,8 @@ jobs:
           file: ./Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/locus313/docker-devops-box:latest
+          tags: |
+            locus313/docker-devops-box:latest
+            ghcr.io/locus313/docker-devops-box:latest
           cache-from: type=registry,ref=ghcr.io/locus313/docker-devops-box:latest
           cache-to: type=registry,ref=ghcr.io/locus313/docker-devops-box:latest,mode=max
