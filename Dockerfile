@@ -87,14 +87,25 @@ RUN curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key a
   && rm -rf /var/lib/apt/lists/* \
   && apt-get autoremove
 
-# install terraform
+# install consul nomad packer
 RUN curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add - \
   && apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
   && apt-get update \
-  && apt-get install -yq terraform consul nomad packer \
+  && apt-get install -yq consul nomad packer \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* \
   && apt-get autoremove
+
+# install tfenv
+RUN git clone https://github.com/tfutils/tfenv.git /usr/local/tfenv \
+  && ln -s /usr/local/tfenv/bin/* /usr/local/bin \
+  && tfenv install 0.12.31 \
+  && tfenv install 0.13.7 \
+  && tfenv install 0.14.11 \
+  && tfenv install 0.15.5 \
+  && tfenv install 1.0.11 \
+  && tfenv install 1.1.7 \
+  && tfenv use 1.1.7
 
 # install ansible from pip3
 RUN pip3 install --upgrade ansible
@@ -202,7 +213,7 @@ RUN sed -i 's/^ZSH_THEME=.*/ZSH_THEME=\"bira\"/g' /home/${LOCAL_USER}/.zshrc
 RUN sed -i 's/^plugins=.*/plugins=\(git python ansible terraform\)/g' /home/${LOCAL_USER}/.zshrc
 
 # install terraform autocomplete
-RUN /usr/bin/terraform -install-autocomplete
+RUN terraform -install-autocomplete
 
 # install ansible plugins (required for ansible 2.10 and newer)
 RUN /usr/local/bin/ansible-galaxy collection install \
