@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 ARG LOCAL_USER=devops
 ARG LOCAL_PASS=devops
@@ -14,8 +14,8 @@ RUN apt-get update \
   && apt-get install -yq \
     software-properties-common locales iputils-ping net-tools vim uuid-runtime \
     sudo man wget nano curl git gawk zip unzip gzip xterm git git-core gitk \
-    rsync repo diffstat zsh chrpath socat fonts-powerline ca-certificates \
-    apt-transport-https gnupg-agent \
+    rsync diffstat zsh chrpath socat fonts-powerline ca-certificates \
+    apt-transport-https gnupg-agent lsb-release \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* \
   && apt-get autoremove
@@ -28,12 +28,12 @@ ENV LC_ALL en_US.UTF-8
 
 # python (prefer python3)
 RUN apt-get update \
-  && apt-get install -yq python3 python3-pip \
+  && apt-get install -yq python python3 python3-pip \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* \
   && apt-get autoremove \
   && update-alternatives --install $(which python) python $(which python2.7) 10 \
-  && update-alternatives --install $(which python) python $(which python3.6) 20
+  && update-alternatives --install $(which python) python $(which python3.8) 20
 
 # install python libs
 RUN pip3 install --upgrade pip
