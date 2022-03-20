@@ -28,13 +28,22 @@ jobs:
           username: locus313
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Build
         uses: docker/build-push-action@v2
         with:
-          context: ./
+          context: .
           file: ./Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
-          push: true
+          load: true
           tags: ghcr.io/locus313/docker-devops-box:latest
           cache-from: type=registry,ref=ghcr.io/locus313/docker-devops-box:buildcache
           cache-to: type=registry,ref=ghcr.io/locus313/docker-devops-box:buildcache,mode=max
+
+      - name: Push
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: ghcr.io/locus313/docker-devops-box:latest
