@@ -1,5 +1,7 @@
 FROM ubuntu:20.04
 
+LABEL org.opencontainers.image.source https://github.com/locus313/docker-devops-box
+
 ARG LOCAL_USER=devops
 ARG LOCAL_PASS=devops
 
