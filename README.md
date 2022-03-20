@@ -28,7 +28,7 @@ docker info
 To build container locally from source:
 
 ```bash
-docker build --rm -t ghcr.io/locus313/devops-box:latest .
+docker build --rm -t ghcr.io/locus313/docker-devops-box:latest .
 ```
 
 To pull container from gitHub container registry:

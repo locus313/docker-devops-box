@@ -2,7 +2,7 @@
 
 set -e
 
-IMAGE=ghcr.io/locus313/devops-box:latest
+IMAGE=ghcr.io/locus313/docker-devops-box:latest
 DOCKER_HOSTNAME=devops
 CONTAINER_USER=devops
 
