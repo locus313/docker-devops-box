@@ -14,9 +14,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
@@ -32,10 +29,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          builder: ${{ steps.buildx.outputs.name }}
           push: ${{ github.event_name != 'pull_request' }}
-          tags: |
-            locus313/docker-devops-box:latest
-            ghcr.io/locus313/docker-devops-box:latest
+          tags: ghcr.io/locus313/docker-devops-box:latest
           cache-from: type=registry,ref=ghcr.io/locus313/docker-devops-box:latest
           cache-to: type=registry,ref=ghcr.io/locus313/docker-devops-box:latest,mode=max
