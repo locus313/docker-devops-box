@@ -37,7 +37,7 @@ jobs:
           load: true
           tags: ghcr.io/locus313/docker-devops-box:latest
           cache-from: type=registry,ref=ghcr.io/locus313/docker-devops-box:buildcache
-          cache-to: type=registry,ref=ghcr.io/locus313/docker-devops-box:buildcache,mode=max
+          
 
       - name: Push
         if: github.event_name != 'pull_request'
@@ -47,3 +47,4 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: ghcr.io/locus313/docker-devops-box:latest
+          cache-to: type=registry,ref=ghcr.io/locus313/docker-devops-box:buildcache,mode=max
