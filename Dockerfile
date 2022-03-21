@@ -58,7 +58,7 @@ RUN pip3 install --upgrade git+https://github.com/vmware/vsphere-automation-sdk-
 RUN pip3 install --upgrade pyvcloud
 
 # install govc
-RUN curl -L https://github.com/vmware/govmomi/releases/download/v0.22.1/govc_linux_amd64.gz | gunzip > /usr/local/bin/govc
+RUN curl -L https://github.com/vmware/govmomi/releases/download/v0.27.4/govc_linux_amd64.gz | gunzip > /usr/local/bin/govc
 
 # install docker
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - \
