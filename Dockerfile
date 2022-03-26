@@ -129,47 +129,47 @@ RUN dpkg -i session-manager-plugin.deb \
   && rm -rf session-manager-plugin.deb
 
 # enable x11 apps
-RUN apt-get update \
-  && apt-get install -yq --no-install-recommends \
-    dirmngr \
-    gnupg \
-    apulse \
-    ca-certificates \
-    ffmpeg \
-    hicolor-icon-theme \
-    libasound2 \
-    libcanberra-gtk* \
-    libgl1-mesa-dri \
-    libgl1-mesa-glx \
-    libpangox-1.0-0 \
-    libpulse0 \
-    libv4l-0 \
-    fonts-noto \
-    fonts-noto-cjk \
-    fonts-noto-color-emoji \
-    fonts-symbola \
-    xdg-utils \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* \
-  && apt-get autoremove
-COPY local.conf /etc/fonts/local.conf
+# RUN apt-get update \
+#   && apt-get install -yq --no-install-recommends \
+#     dirmngr \
+#     gnupg \
+#     apulse \
+#     ca-certificates \
+#     ffmpeg \
+#     hicolor-icon-theme \
+#     libasound2 \
+#     libcanberra-gtk* \
+#     libgl1-mesa-dri \
+#     libgl1-mesa-glx \
+#     libpangox-1.0-0 \
+#     libpulse0 \
+#     libv4l-0 \
+#     fonts-noto \
+#     fonts-noto-cjk \
+#     fonts-noto-color-emoji \
+#     fonts-symbola \
+#     xdg-utils \
+#   && apt-get clean \
+#   && rm -rf /var/lib/apt/lists/* \
+#   && apt-get autoremove
+# COPY local.conf /etc/fonts/local.conf
 
 # setup firefox
-RUN apt-get update \
-  && apt-get install -yq --no-install-recommends firefox \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* \
-  && apt-get autoremove
-RUN echo 'pref("browser.tabs.remote.autostart", false);' >> /etc/firefox/syspref.js
+# RUN apt-get update \
+#   && apt-get install -yq --no-install-recommends firefox \
+#   && apt-get clean \
+#   && rm -rf /var/lib/apt/lists/* \
+#   && apt-get autoremove
+# RUN echo 'pref("browser.tabs.remote.autostart", false);' >> /etc/firefox/syspref.js
 
 # setup chrome
-RUN curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
-  && add-apt-repository "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main" \
-  && apt-get update \
-  && apt-get install -yq --no-install-recommends google-chrome-stable \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* \
-  && apt-get autoremove
+# RUN curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
+#   && add-apt-repository "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main" \
+#   && apt-get update \
+#   && apt-get install -yq --no-install-recommends google-chrome-stable \
+#   && apt-get clean \
+#   && rm -rf /var/lib/apt/lists/* \
+#   && apt-get autoremove
 
 # create entrypoint
 COPY entrypoint.sh /entrypoint.sh
