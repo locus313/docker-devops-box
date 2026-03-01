@@ -36,7 +36,6 @@ RUN apt-get update \
   && apt-get autoremove
 
 # install python libs
-RUN pip3 install --upgrade pip --break-system-packages
 RUN pip3 install --upgrade --break-system-packages \
   argcomplete \
   paramiko \
