@@ -1,0 +1,11 @@
+# Grype vulnerability scan configuration
+#
+# Ignore rules for intentionally pinned legacy Terraform versions.
+# Terraform 0.12.31 and 0.14.11 are included for backward compatibility with
+# older infrastructure codebases and cannot be upgraded. All CVEs in these
+# specific binaries are accepted risks, isolated within the tfenv version path.
+ignore:
+  - package:
+      location: "/usr/local/tfenv/versions/0.12.31/terraform"
+  - package:
+      location: "/usr/local/tfenv/versions/0.14.11/terraform"

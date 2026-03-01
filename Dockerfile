@@ -16,7 +16,7 @@ RUN apt-get update \
   && apt-get install -yq \
     software-properties-common locales iputils-ping net-tools vim uuid-runtime \
     sudo man wget nano curl git gawk zip unzip gzip xterm git git-core gitk \
-    rsync diffstat zsh chrpath socat fonts-powerline ca-certificates \
+    rsync diffstat zsh chrpath fonts-powerline ca-certificates \
     apt-transport-https gnupg-agent lsb-release \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* \
@@ -57,17 +57,16 @@ RUN mkdir -p /etc/apt/keyrings \
   && echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
     > /etc/apt/sources.list.d/docker.list \
   && apt-get update \
-  && apt-get install -yq docker-ce docker-ce-cli containerd.io \
+  && apt-get install -yq docker-ce docker-ce-cli containerd.io docker-compose-plugin \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* \
   && apt-get autoremove
 
-# install docker-compose
-RUN curl -L "https://github.com/docker/compose/releases/download/1.25.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
-  && chmod +x /usr/local/bin/docker-compose
+# install docker-compose (v2 via plugin symlink for backward compat)
+RUN ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose
 
 # install k8s tools
-ARG K8S_VERSION=1.32
+ARG K8S_VERSION=1.33
 RUN mkdir -p /etc/apt/keyrings \
   && curl -fsSL https://pkgs.k8s.io/core:/stable:/v${K8S_VERSION}/deb/Release.key \
     | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg \
@@ -95,12 +94,12 @@ RUN curl -fsSL https://apt.releases.hashicorp.com/gpg \
 RUN git clone https://github.com/tfutils/tfenv.git /usr/local/tfenv \
   && ln -s /usr/local/tfenv/bin/* /usr/local/bin \
   && tfenv install 0.12.31 \
-  && tfenv install 0.13.7 \
   && tfenv install 0.14.11 \
-  && tfenv install 0.15.5 \
-  && tfenv install 1.0.11 \
-  && tfenv install 1.1.7 \
-  && tfenv use 1.1.7
+  && tfenv install 1.5.7 \
+  && tfenv install 1.9.8 \
+  && tfenv install 1.10.5 \
+  && tfenv install 1.11.2 \
+  && tfenv use 1.11.2
 
 # install ansible from pip3
 RUN pip3 install --upgrade ansible --break-system-packages

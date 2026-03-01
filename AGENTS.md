@@ -12,10 +12,10 @@
 
 | Tool | Version / Notes |
 |---|---|
-| Terraform | Managed by `tfenv`; default `1.1.7` (also: 0.12.31, 0.13.7, 0.14.11, 0.15.5, 1.0.11) |
-| kubectl / kubelet / kubeadm | `1.32` (latest patch; installed from `pkgs.k8s.io`) |
+| Terraform | Managed by `tfenv`; default `1.11.2` (also: 0.12.31, 0.14.11, 1.5.7, 1.9.8, 1.10.5) |
+| kubectl / kubelet / kubeadm | `1.33` (latest patch; installed from `pkgs.k8s.io`) |
 | Ansible | Latest via `pip3`; galaxy collections pre-installed |
-| docker-compose | `1.25.5` |
+| docker-compose | `2.x` (Docker Compose v2 plugin, symlinked) |
 | AWS CLI v2 | Latest |
 | AWS Session Manager plugin | Latest |
 | consul / nomad / packer | Latest via HashiCorp apt repo |
@@ -206,9 +206,9 @@ tfenv use 0.14.11
 tfenv install 1.2.0
 ```
 
-Current default: `1.1.7`
+Current default: `1.11.2`
 
-Available pre-installed: `0.12.31`, `0.13.7`, `0.14.11`, `0.15.5`, `1.0.11`, `1.1.7`
+Available pre-installed: `0.12.31`, `0.14.11`, `1.5.7`, `1.9.8`, `1.10.5`, `1.11.2`
 
 ---
 

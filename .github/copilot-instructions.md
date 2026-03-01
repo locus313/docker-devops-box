@@ -60,9 +60,9 @@ docker pull ghcr.io/locus313/docker-devops-box:latest               # pull from 
 
 | Tool | Version |
 |---|---|
-| Terraform (via `tfenv`) | default `1.1.7`; also 0.12.31, 0.13.7, 0.14.11, 0.15.5, 1.0.11 |
-| kubectl / kubelet / kubeadm | `1.32` latest patch via `pkgs.k8s.io` (held with `apt-mark hold`) |
-| docker-compose | `1.25.5` |
+| Terraform (via `tfenv`) | default `1.11.2`; also 0.12.31, 0.14.11, 1.5.7, 1.9.8, 1.10.5 |
+| kubectl / kubelet / kubeadm | `1.33` latest patch via `pkgs.k8s.io` (held with `apt-mark hold`) |
+| docker-compose | `2.x` (Docker Compose v2 plugin, symlinked) |
 | Ansible | latest pip3; galaxy collections: `community.aws`, `amazon.aws`, etc. |
 
 ## Adding a New Tool
