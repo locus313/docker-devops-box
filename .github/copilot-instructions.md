@@ -2,71 +2,84 @@
 
 ## What This Project Is
 
-A portable DevOps toolbox delivered as a Docker image (`ghcr.io/locus313/docker-devops-box:latest`). Host CLI tools (ansible, terraform, kubectl, consul, nomad, packer, AWS CLI, govc, etc.) are **not installed locally** — instead, `run-in-docker.sh` is symlinked to each tool name and transparently runs that tool inside the container.
+A portable DevOps toolbox delivered as a Docker image (`ghcr.io/locus313/docker-devops-box:latest`). No tools are installed on the host — `run-in-docker.sh` is symlinked to each tool name and transparently proxies execution into the container, mapping the host filesystem automatically.
 
-## Core Architecture
+## Core Files
 
 | File | Role |
 |---|---|
-| `Dockerfile` | Ubuntu 20.04 image; installs all tools; runs as non-root `devops` user with zsh + oh-my-zsh |
-| `run-in-docker.sh` | Host-side launcher; reads `basename $0` to determine which container command to run |
-| `entrypoint.sh` | Container entry; symlinks host `$HOME` dotfiles into the container user's home |
-| `opts/<name>` | Per-command bash snippets sourced by `run-in-docker.sh` to inject extra `DOCKER_OPTS`, override `CMD`, or define `cleanup()` |
+| `Dockerfile` | Ubuntu 20.04; all tool installs; non-root `devops` user; zsh + oh-my-zsh; `entrypoint.sh` as `ENTRYPOINT`, default `CMD ["zsh"]` |
+| `run-in-docker.sh` | Host launcher: detects tool name via `basename $0`, sources matching `opts/<cmd>`, then runs `docker run -it --rm` |
+| `entrypoint.sh` | Container entry: symlinks every dotfile from `/home/$HOST_USER` into `/home/devops` (skips existing), then `exec "$@"` |
+| `opts/<name>` | Bash snippet sourced by `run-in-docker.sh`; can set `CMD`, append `DOCKER_OPTS`, define `cleanup()` |
+
+## Execution Flow in run-in-docker.sh
+
+1. `CMD` defaults to `basename $0` (the symlink name), unless already set in the environment.
+2. Default `DOCKER_OPTS` are built (hostname, DISPLAY, HOST_USER, docker socket mount).
+3. `opts/$CMD` is sourced **before** the `docker run` call — so it can override `CMD` and `DOCKER_OPTS`.
+4. Volume strategy is chosen based on `$PWD` (see below), then `docker run -it --rm` executes `cd $REMOTE_PWD && $CMD $ARGS`.
+5. After `docker` exits, `cleanup` is called if defined in the sourced opts file.
 
 ## The opts/ Pattern
 
-Adding a file at `opts/<command-name>` customises that command's container launch without touching `run-in-docker.sh`. Three hooks are available:
+Create `opts/<toolname>` to customise a command's launch without touching `run-in-docker.sh`:
 
 ```bash
-# Override which binary runs in the container (default: basename of symlink)
-export CMD=zsh
-
-# Append docker flags
+export CMD=zsh                                              # override binary (default: symlink name)
 DOCKER_OPTS="${DOCKER_OPTS} --security-opt seccomp=/tmp/chrome.json"
-export DOCKER_OPTS=${DOCKER_OPTS}
-
-# Optional cleanup function called after docker exits
-cleanup() { rm -rf /tmp/chrome.json; }
+export DOCKER_OPTS=${DOCKER_OPTS}                          # append docker flags
+cleanup() { rm -rf /tmp/chrome.json; }                    # runs after docker exits
 ```
 
-See `opts/devops-shell` (drops into zsh), `opts/google-chrome` (adds seccomp profile), and `opts/run-my-bash` (forces bash) as examples.
+Examples: `opts/devops-shell` (sets `CMD=zsh`), `opts/run-my-bash` (sets `CMD=bash`), `opts/google-chrome` (downloads seccomp profile + appends flag).
 
-## Volume-Mapping Behaviour (two modes)
+## Volume-Mapping (two modes)
 
-`run-in-docker.sh` chooses the mount strategy based on `$PWD`:
+| Context | Host home mount | CWD inside container |
+|---|---|---|
+| `$PWD` inside `$HOME` | `$HOME → /home/<basename of HOME>` | mirrors host sub-path (full read/write) |
+| `$PWD` outside `$HOME` | `$HOME → /host/home/<basename>` (read-only root + writable `$PWD → /host/current`) | `/host/current` |
 
-- **Inside `$HOME`**: maps `$HOME → /home/<basename>`, sets `$REMOTE_PWD` to the equivalent sub-path. Full read/write.
-- **Outside `$HOME`**: maps `$HOME → /host/home/<basename>` (user home), mounts `$PWD → /host/current` (writable), and maps host root read-only. Set `UNSAFE_WRITE_ROOT=true` to make host root writable.
+Set `UNSAFE_WRITE_ROOT=true` to make the host root writable when outside `$HOME`.
+
+## entrypoint.sh Dotfile Behaviour
+
+On every container start, `entrypoint.sh` iterates `ls -a1 /home/$HOST_USER` and symlinks each entry into `/home/devops/`, skipping `.`, `..`, and paths that already exist. This makes host dotfiles (`.ssh`, `.aws`, `.kube`, `.gitconfig`, etc.) available inside the container automatically.
 
 ## Build & CI
 
 ```bash
-# Build locally
-docker build --rm -t ghcr.io/locus313/docker-devops-box:latest .
-
-# Pull from registry
-docker pull ghcr.io/locus313/docker-devops-box:latest
+docker build --rm -t ghcr.io/locus313/docker-devops-box:latest .   # local build
+docker pull ghcr.io/locus313/docker-devops-box:latest               # pull from GHCR
 ```
 
-CI (`.github/workflows/build.yml`) builds on every push/PR to `main` and pushes to GHCR only on merged commits. Registry cache (`buildcache` tag) speeds up rebuilds.
+`.github/workflows/build.yml`: builds on every push/PR; **pushes only when `github.event_name != 'pull_request'`** (i.e., on merge to `main`). Uses `buildcache` tag for layer caching. Requires repo secret `PAT` (GitHub PAT with `write:packages`).
 
-## Installed Tool Versions (pin points in Dockerfile)
+## Pinned Tool Versions (Dockerfile)
 
-- **Terraform**: managed by `tfenv`; multiple versions installed; default `1.1.7`
-- **Kubernetes**: `kubectl`/`kubelet`/`kubeadm` pinned to `1.18.8`
-- **govc**: `0.27.4`
-- **docker-compose**: `1.25.5`
-- **Ansible**: latest pip3 install; galaxy collections include `community.aws`, `community.vmware`, `amazon.aws`, etc.
+| Tool | Version |
+|---|---|
+| Terraform (via `tfenv`) | default `1.1.7`; also 0.12.31, 0.13.7, 0.14.11, 0.15.5, 1.0.11 |
+| kubectl / kubelet / kubeadm | `1.18.8` (held with `apt-mark hold`) |
+| govc | `0.27.4` |
+| docker-compose | `1.25.5` |
+| Ansible | latest pip3; galaxy collections: `community.aws`, `community.vmware`, `amazon.aws`, etc. |
 
 ## Adding a New Tool
 
-1. Add the install block to `Dockerfile` (keep apt cache-clean pattern: `apt-get clean && rm -rf /var/lib/apt/lists/*`).
-2. If the tool needs extra docker flags or a different launch command, create `opts/<toolname>`.
-3. Document the new symlink in `README.md` under "Symlink Example".
+1. Add an install block to `Dockerfile` — always end with:
+   ```dockerfile
+   && apt-get clean \
+   && rm -rf /var/lib/apt/lists/* \
+   && apt-get autoremove
+   ```
+2. Create `opts/<toolname>` if the tool needs extra docker flags or a different binary name.
+3. Add the symlink to the "Symlink Example" section in `README.md`.
 
-## Adding a New CLI Alias
+## Adding a New CLI Alias / Symlink
 
 ```bash
 ln -s $PWD/run-in-docker.sh /usr/local/bin/<toolname>
-# or, for alias-style overrides, create opts/<toolname> with: export CMD=<actual-binary>
+# To redirect to a different binary: create opts/<toolname> with: export CMD=<actual-binary>
 ```
