@@ -115,22 +115,120 @@ docker build --rm -t ghcr.io/locus313/docker-devops-box:latest .
 Symlink `run-in-docker.sh` to each tool you want to call directly from your
 shell. The symlink name determines which binary is executed inside the container.
 
+> **Any binary available inside the container can be proxied** — just create a
+> symlink named after it.
+
+---
+
+#### Linux
+
+Ensure the script is executable, then symlink into `/usr/local/bin` (requires
+`sudo`) or a user-local directory like `~/.local/bin` (no `sudo` needed).
+
 ```bash
+# Make the launcher executable (only needed once)
+chmod +x run-in-docker.sh
+
+# Option A — system-wide (requires sudo)
 BIN_DIR=/usr/local/bin
-ln -s $PWD/run-in-docker.sh ${BIN_DIR}/ansible
-ln -s $PWD/run-in-docker.sh ${BIN_DIR}/ansible-doc
-ln -s $PWD/run-in-docker.sh ${BIN_DIR}/ansible-inventory
-ln -s $PWD/run-in-docker.sh ${BIN_DIR}/ansible-playbook
-ln -s $PWD/run-in-docker.sh ${BIN_DIR}/consul
-ln -s $PWD/run-in-docker.sh ${BIN_DIR}/nomad
-ln -s $PWD/run-in-docker.sh ${BIN_DIR}/packer
-ln -s $PWD/run-in-docker.sh ${BIN_DIR}/terraform
-ln -s $PWD/run-in-docker.sh ${BIN_DIR}/devops-shell
-ln -s $PWD/run-in-docker.sh ${BIN_DIR}/kubectl
+for tool in ansible ansible-doc ansible-inventory ansible-playbook \
+            consul nomad packer terraform devops-shell kubectl; do
+  sudo ln -s "$PWD/run-in-docker.sh" "${BIN_DIR}/${tool}"
+done
+
+# Option B — current user only (no sudo required)
+BIN_DIR="$HOME/.local/bin"
+mkdir -p "$BIN_DIR"
+for tool in ansible ansible-doc ansible-inventory ansible-playbook \
+            consul nomad packer terraform devops-shell kubectl; do
+  ln -s "$PWD/run-in-docker.sh" "${BIN_DIR}/${tool}"
+done
+# Ensure ~/.local/bin is on your PATH (add to ~/.bashrc or ~/.zshrc if needed):
+# export PATH="$HOME/.local/bin:$PATH"
 ```
 
-Any binary available inside the container can be proxied — just create a
-symlink named after it.
+---
+
+#### macOS
+
+Docker Desktop for Mac exposes the daemon socket at the default path that
+`run-in-docker.sh` expects. The setup is otherwise identical to Linux.
+
+```bash
+# Make the launcher executable (only needed once)
+chmod +x run-in-docker.sh
+
+# Option A — system-wide (requires sudo; works on Intel and Apple Silicon)
+BIN_DIR=/usr/local/bin
+for tool in ansible ansible-doc ansible-inventory ansible-playbook \
+            consul nomad packer terraform devops-shell kubectl; do
+  sudo ln -s "$PWD/run-in-docker.sh" "${BIN_DIR}/${tool}"
+done
+
+# Option B — current user only (no sudo required)
+BIN_DIR="$HOME/.local/bin"
+mkdir -p "$BIN_DIR"
+for tool in ansible ansible-doc ansible-inventory ansible-playbook \
+            consul nomad packer terraform devops-shell kubectl; do
+  ln -s "$PWD/run-in-docker.sh" "${BIN_DIR}/${tool}"
+done
+# Ensure ~/.local/bin is on your PATH (add to ~/.zshrc):
+# export PATH="$HOME/.local/bin:$PATH"
+```
+
+> **macOS note:** If Docker Desktop reports a socket error, confirm the socket
+> path in Docker Desktop → Settings → Advanced. The default is
+> `/var/run/docker.sock` (a symlink to the user socket).
+
+---
+
+#### WSL on Windows (Recommended approach for Windows users)
+
+**Prerequisites:**
+
+1. [Docker Desktop for Windows](https://docs.docker.com/desktop/install/windows-install/)
+   installed with the **WSL 2 backend** enabled.
+2. Your WSL distro enabled under Docker Desktop → Settings → Resources → WSL
+   Integration.
+3. The repository cloned **inside the WSL filesystem** (e.g.
+   `~/code/docker-devops-box`) for correct path mapping and best I/O
+   performance. Cloning under `/mnt/c/...` works but is significantly slower.
+
+```bash
+# Clone into WSL filesystem (if not already done)
+git clone https://github.com/locus313/docker-devops-box.git ~/code/docker-devops-box
+cd ~/code/docker-devops-box
+
+# Make the launcher executable
+chmod +x run-in-docker.sh
+
+# Symlink into ~/.local/bin (no sudo required)
+BIN_DIR="$HOME/.local/bin"
+mkdir -p "$BIN_DIR"
+for tool in ansible ansible-doc ansible-inventory ansible-playbook \
+            consul nomad packer terraform devops-shell kubectl; do
+  ln -s "$PWD/run-in-docker.sh" "${BIN_DIR}/${tool}"
+done
+
+# Add ~/.local/bin to PATH if not already present (add to ~/.bashrc or ~/.zshrc)
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+Verify Docker is reachable from WSL before running any tool:
+
+```bash
+docker info
+```
+
+> **WSL notes:**
+> - Always run the symlinked tools from a **WSL terminal** (e.g. Windows
+>   Terminal → Ubuntu), not from PowerShell or CMD — the launcher is a bash
+>   script.
+> - Your WSL `$HOME` (e.g. `/home/yourname`) is mapped into the container, so
+>   dotfiles such as `.ssh`, `.aws`, and `.kube` are available automatically.
+> - If you store credentials under the Windows profile (`C:\Users\...`), expose
+>   them to WSL by symlinking: `ln -s /mnt/c/Users/$WIN_USER/.aws ~/.aws`
 
 ### Drop Into an Interactive Shell
 
