@@ -13,7 +13,7 @@
 | Tool | Version / Notes |
 |---|---|
 | Terraform | Managed by `tfenv`; default `1.1.7` (also: 0.12.31, 0.13.7, 0.14.11, 0.15.5, 1.0.11) |
-| kubectl / kubelet / kubeadm | `1.18.8` |
+| kubectl / kubelet / kubeadm | `1.32` (latest patch; installed from `pkgs.k8s.io`) |
 | Ansible | Latest via `pip3`; galaxy collections pre-installed |
 | docker-compose | `1.25.5` |
 | AWS CLI v2 | Latest |
@@ -178,8 +178,9 @@ The workflow in `.github/workflows/build.yml` runs on every push and pull reques
 - **On PRs**: builds the image only (no push).
 - **On merge to `main`**: builds and pushes `ghcr.io/locus313/docker-devops-box:latest` to GHCR.
 - **Registry cache**: uses `ghcr.io/locus313/docker-devops-box:buildcache` to speed up rebuilds.
+- **Skipped for**: changes to `**/*.md` files (`paths-ignore`).
 
-**Required secret:** `PAT` — a GitHub Personal Access Token with `write:packages` scope, stored in repository secrets.
+**Required secret:** `PAT` — a GitHub Personal Access Token with `write:packages` and `read:packages` scopes, stored in repository secrets.
 
 To build and test locally before pushing:
 

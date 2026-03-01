@@ -54,14 +54,14 @@ docker build --rm -t ghcr.io/locus313/docker-devops-box:latest .   # local build
 docker pull ghcr.io/locus313/docker-devops-box:latest               # pull from GHCR
 ```
 
-`.github/workflows/build.yml`: builds on every push/PR; **pushes only when `github.event_name != 'pull_request'`** (i.e., on merge to `main`). Uses `buildcache` tag for layer caching. Requires repo secret `PAT` (GitHub PAT with `write:packages`).
+`.github/workflows/build.yml`: builds on every push/PR (ignores `**/*.md` changes); **pushes only when `github.event_name != 'pull_request'`** (i.e., on merge to `main`). Uses `buildcache` tag for layer caching. Requires repo secret `PAT` (GitHub PAT with `write:packages` and `read:packages`).
 
 ## Pinned Tool Versions (Dockerfile)
 
 | Tool | Version |
 |---|---|
 | Terraform (via `tfenv`) | default `1.1.7`; also 0.12.31, 0.13.7, 0.14.11, 0.15.5, 1.0.11 |
-| kubectl / kubelet / kubeadm | `1.18.8` (held with `apt-mark hold`) |
+| kubectl / kubelet / kubeadm | `1.32` latest patch via `pkgs.k8s.io` (held with `apt-mark hold`) |
 | docker-compose | `1.25.5` |
 | Ansible | latest pip3; galaxy collections: `community.aws`, `amazon.aws`, etc. |
 
