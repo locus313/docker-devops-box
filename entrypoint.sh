@@ -1,20 +1,26 @@
 #!/usr/bin/env bash
 
-# fix docker socket permissions in container
-# sudo chown root:docker /var/run/docker.sock &> /dev/null
-# sudo chmod 644 /var/run/docker.sock &> /dev/null
+# ============================================================================
+# entrypoint.sh - Container entrypoint
+# Symlinks host user dotfiles into the container user's home directory,
+# then exec's the provided command.
+# ============================================================================
 
-# link files from host user home volume into container user home volume
+set -euo pipefail
+
+# fix docker socket permissions in container
+# sudo chown root:docker /var/run/docker.sock 2>/dev/null
+# sudo chmod 644 /var/run/docker.sock 2>/dev/null
+
+# Link files from host user home volume into container user home volume
 if [[ -d "/home/${HOST_USER}" ]]; then
-  HOME_FILES=$(ls -a1 /home/${HOST_USER})
-  for homepath in ${HOME_FILES}; do
-    # dont link '.' and '..'
-    if [ "${homepath}" != "." ] && [ "${homepath}" != ".." ]; then
-      # dont link files that already exist in home directory of container
-      if [[ ! -e /home/${CONTAINER_USER}/${homepath} ]]; then
-        ln -s /home/${HOST_USER}/${homepath} /home/${CONTAINER_USER}/${homepath} &> /dev/null
-      fi
+  while IFS= read -r -d '' homepath; do
+    basename_path="$(basename "${homepath}")"
+    # Skip files that already exist in the container user's home directory
+    if [[ ! -e "/home/${CONTAINER_USER}/${basename_path}" ]]; then
+      ln -s "${homepath}" "/home/${CONTAINER_USER}/${basename_path}" 2>/dev/null || true
     fi
-  done
+  done < <(find "/home/${HOST_USER}" -maxdepth 1 -mindepth 1 -print0)
 fi
+
 exec "$@"
