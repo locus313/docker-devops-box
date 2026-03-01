@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
 LABEL org.opencontainers.image.source https://github.com/locus313/docker-devops-box
 
@@ -28,18 +28,16 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-# python (prefer python3)
+# python (python3)
 RUN apt-get update \
-  && apt-get install -yq python python3 python3-pip \
+  && apt-get install -yq python3 python3-pip python-is-python3 \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* \
-  && apt-get autoremove \
-  && update-alternatives --install $(which python) python $(which python2.7) 10 \
-  && update-alternatives --install $(which python) python $(which python3.8) 20
+  && apt-get autoremove
 
 # install python libs
-RUN pip3 install --upgrade pip
-RUN pip3 install --upgrade \
+RUN pip3 install --upgrade pip --break-system-packages
+RUN pip3 install --upgrade --break-system-packages \
   argcomplete \
   paramiko \
   setuptools \
@@ -54,8 +52,11 @@ RUN pip3 install --upgrade \
   PyYAML
 
 # install docker
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - \
-  && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+RUN mkdir -p /etc/apt/keyrings \
+  && curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+    | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+  && echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+    > /etc/apt/sources.list.d/docker.list \
   && apt-get update \
   && apt-get install -yq docker-ce docker-ce-cli containerd.io \
   && apt-get clean \
@@ -81,8 +82,10 @@ RUN mkdir -p /etc/apt/keyrings \
   && apt-get autoremove
 
 # install consul nomad packer
-RUN curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add - \
-  && apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
+RUN curl -fsSL https://apt.releases.hashicorp.com/gpg \
+    | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg \
+  && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
+    > /etc/apt/sources.list.d/hashicorp.list \
   && apt-get update \
   && apt-get install -yq consul nomad packer \
   && apt-get clean \
@@ -101,7 +104,7 @@ RUN git clone https://github.com/tfutils/tfenv.git /usr/local/tfenv \
   && tfenv use 1.1.7
 
 # install ansible from pip3
-RUN pip3 install --upgrade ansible
+RUN pip3 install --upgrade ansible --break-system-packages
 
 # # install tkg
 # COPY resources/tkg-linux-amd64-v1.1.3_vmware.1.gz /tmp
