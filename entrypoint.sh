@@ -23,4 +23,12 @@ if [[ -d "/home/${HOST_USER}" ]]; then
   done < <(find "/home/${HOST_USER}" -maxdepth 1 -mindepth 1 -print0)
 fi
 
+# Install additional Terraform versions requested at runtime.
+# Usage: docker run -e TFENV_VERSIONS="1.5.7 1.9.8" ...
+if [[ -n "${TFENV_VERSIONS:-}" ]]; then
+  for tf_version in ${TFENV_VERSIONS}; do
+    tfenv install "${tf_version}"
+  done
+fi
+
 exec "$@"

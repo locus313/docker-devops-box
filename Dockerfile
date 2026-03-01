@@ -26,19 +26,16 @@ RUN curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tm
 RUN curl -fsSL "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" \
     -o /opt/session-manager-plugin.deb
 
-# --- tfenv + all pinned Terraform versions ---
-# Installing here means the runtime stage inherits pre-downloaded binaries
-# instead of pulling them at container build time.
+# --- tfenv + latest Terraform version ---
+# Only the latest stable release is baked into the image at build time.
+# Additional versions can be installed at container startup via the
+# TFENV_VERSIONS environment variable (space-separated list, e.g.
+# TFENV_VERSIONS="1.5.7 1.9.8").
 RUN git clone --depth=1 https://github.com/tfutils/tfenv.git /usr/local/tfenv \
   && ln -s /usr/local/tfenv/bin/tfenv     /usr/local/bin/tfenv \
   && ln -s /usr/local/tfenv/bin/terraform /usr/local/bin/terraform \
-  && tfenv install 0.12.31 \
-  && tfenv install 0.14.11 \
-  && tfenv install 1.5.7 \
-  && tfenv install 1.9.8 \
-  && tfenv install 1.10.5 \
-  && tfenv install 1.11.2 \
-  && tfenv use 1.11.2
+  && tfenv install latest \
+  && tfenv use latest
 
 # =============================================================================
 # Stage 2: runtime
@@ -139,11 +136,11 @@ COPY --from=downloader /opt/session-manager-plugin.deb /tmp/session-manager-plug
 RUN dpkg -i /tmp/session-manager-plugin.deb \
   && rm -f /tmp/session-manager-plugin.deb
 
-# tfenv + pre-downloaded Terraform versions
+# tfenv + pre-downloaded Terraform version (latest at build time)
 COPY --from=downloader /usr/local/tfenv /usr/local/tfenv
 RUN ln -s /usr/local/tfenv/bin/tfenv     /usr/local/bin/tfenv \
   && ln -s /usr/local/tfenv/bin/terraform /usr/local/bin/terraform \
-  && tfenv use 1.11.2
+  && tfenv use latest
 
 # --- Entrypoint (single COPY with mode; no separate chmod layer) ---
 COPY --chmod=0755 entrypoint.sh /entrypoint.sh

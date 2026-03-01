@@ -39,7 +39,7 @@ proxies execution into the container, mapping the host filesystem automatically.
 
 | Tool | Version |
 |---|---|
-| Terraform (via `tfenv`) | **1.11.2** default; also 0.12.31, 0.14.11, 1.5.7, 1.9.8, 1.10.5 |
+| Terraform (via `tfenv`) | **latest stable** baked in at build time; additional versions installable at runtime via `TFENV_VERSIONS` |
 | kubectl / kubelet / kubeadm | **1.33** (latest patch via `pkgs.k8s.io`, held) |
 | Ansible | Latest via `pip3` |
 | Docker CE + Compose v2 | Latest stable |
@@ -62,7 +62,7 @@ The project uses a **multi-stage Docker build** to keep the final image lean:
 ┌──────────────────────────────────────────────────────┐
 │  Stage 1 — downloader (ubuntu:24.04)                 │
 │  Downloads: AWS CLI, Session Manager Plugin,         │
-│  tfenv + all pinned Terraform versions               │
+│  tfenv + latest stable Terraform version             │
 └──────────────────┬───────────────────────────────────┘
                    │  COPY --from=downloader
 ┌──────────────────▼───────────────────────────────────┐
@@ -84,6 +84,7 @@ The project uses a **multi-stage Docker build** to keep the final image lean:
 **Container startup** (`entrypoint.sh`):
 
 - Iterates `/home/$HOST_USER` and symlinks every dotfile (`.ssh`, `.aws`, `.kube`, `.gitconfig`, etc.) into `/home/devops/`, skipping entries that already exist.
+- If `TFENV_VERSIONS` is set, installs each listed Terraform version before handing off.
 - Calls `exec "$@"` to hand off to the requested command.
 
 ---
@@ -267,7 +268,7 @@ This opens an interactive zsh session inside the container with your host
 - **Zero host dependencies** beyond Docker — no Python, Terraform, or kubectl installs needed on the host.
 - **Transparent CLI proxy** — symlink `run-in-docker.sh` to any tool name; it just works.
 - **Automatic dotfile injection** — host `.ssh`, `.aws`, `.kube`, `.gitconfig`, and other dotfiles are symlinked into the container on every run via `entrypoint.sh`.
-- **Multi-version Terraform** — `tfenv` ships with six pre-installed versions; switch instantly with `tfenv use <version>`.
+- **Flexible Terraform versions** — the latest stable Terraform is baked into the image at build time; pass `TFENV_VERSIONS` at container startup to install additional versions on demand.
 - **Non-root container user** — all commands run as `devops` with `NOPASSWD sudo` for safe file permissions on mapped volumes.
 - **Docker-in-Docker** — the Docker socket is always mounted, enabling container management from within the toolbox.
 - **Per-command customization** — drop a bash snippet in `opts/<toolname>` to override flags or the executed binary without modifying the launcher script.
@@ -324,19 +325,20 @@ my-shell   # drops into bash inside the container
 
 ## Terraform Version Management
 
-`tfenv` manages multiple Terraform versions inside the container.
-
-**Pre-installed versions:** `0.12.31` · `0.14.11` · `1.5.7` · `1.9.8` · `1.10.5` · `1.11.2` (default)
+`tfenv` manages Terraform versions inside the container. The **latest stable** release is baked into the image at build time. Additional versions can be installed at container startup via the `TFENV_VERSIONS` environment variable, or interactively inside a `devops-shell` session.
 
 ```bash
-# List installed versions
-devops-shell -c "tfenv list"
+# Use the default (latest stable) version
+terraform version
 
-# Switch to a different version
-devops-shell -c "tfenv use 1.5.7"
+# Install extra versions at startup (space-separated)
+docker run -it --rm -e TFENV_VERSIONS="1.5.7 1.9.8" ghcr.io/locus313/docker-devops-box:latest zsh
 
-# Install an additional version
-devops-shell -c "tfenv install 1.2.0"
+# Or, install / switch versions interactively inside the container
+devops-shell
+tfenv list
+tfenv install 1.5.7
+tfenv use 1.5.7
 ```
 
 ---

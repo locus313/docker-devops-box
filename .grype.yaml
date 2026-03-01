@@ -1,65 +1,31 @@
 # Grype vulnerability scan configuration
 #
-# Ignore rules are organised into three categories:
+# Ignore rules are organised into two categories:
 #
-#  1. Legacy Terraform versions (accepted risk, backward-compat requirement)
-#  2. Go stdlib CVEs with no upstream fix yet – all affected binaries are
+#  1. Go stdlib CVEs with no upstream fix yet – all affected binaries are
 #     third-party pre-built releases; we cannot recompile them.
-#  3. System packages (deb) where Ubuntu has not yet released a patched version.
+#  2. System packages (deb) where Ubuntu has not yet released a patched version.
 #
 # All suppressions are reviewed and re-evaluated when upstream fixes land.
+# Note: legacy Terraform version ignores (0.12.31, 0.14.11, 1.5.7, 1.9.8,
+# 1.10.5) were removed when the image moved to only baking in the latest
+# stable release by default.
 
 ignore:
   # ──────────────────────────────────────────────────────────────────────────
-  # 1. Legacy Terraform versions (accepted risk – backward compatibility)
-  #    Terraform 0.12.31 and 0.14.11 are required for older infrastructure
-  #    codebases.  All CVEs in these paths are accepted risks.
-  # ──────────────────────────────────────────────────────────────────────────
-  - package:
-      location: "/usr/local/tfenv/versions/0.12.31/terraform"
-  - package:
-      location: "/usr/local/tfenv/versions/0.14.11/terraform"
-
-  # ──────────────────────────────────────────────────────────────────────────
-  # 2. Go stdlib CVEs – no upstream fix available yet
+  # 1. Go stdlib CVEs – no upstream fix available yet
   #
   #    CVE-2025-68121 and CVE-2025-22871 affect every pre-built Go binary in
   #    the image (Docker CE, containerd, runc, rootlesskit, packer,
-  #    session-manager-plugin, CNI plugins, crictl, and all Terraform
-  #    versions).  These binaries are installed from upstream package
+  #    session-manager-plugin, CNI plugins, crictl, and the default Terraform
+  #    release).  These binaries are installed from upstream package
   #    repositories; patched releases have not been published yet.
-  #
-  #    CVE-2023-24531 and CVE-2024-24790 affect terraform 1.5.7 (built with
-  #    go1.20.7).  1.5.7 is the final patch in the 1.5.x stream; no newer
-  #    build is available.
   # ──────────────────────────────────────────────────────────────────────────
   - vulnerability: CVE-2025-68121
   - vulnerability: CVE-2025-22871
-  - vulnerability: CVE-2023-24531
-  - vulnerability: CVE-2024-24790
 
   # ──────────────────────────────────────────────────────────────────────────
-  # 3. Go module advisories – no fix available for pinned Terraform minor
-  #    streams (1.5.x, 1.9.x, 1.10.x are end-of-patch; 1.11.x is not affected)
-  #
-  #    GHSA-v778-237x-gjrc  golang.org/x/crypto  – fixed in 1.11.x (v0.31.0+)
-  #    GHSA-q64h-39hv-4cf7  hashicorp/go-getter  – affects 1.5.7 (v1.7.0)
-  # ──────────────────────────────────────────────────────────────────────────
-  - vulnerability: GHSA-v778-237x-gjrc
-    package:
-      location: "/usr/local/tfenv/versions/1.5.7/terraform"
-  - vulnerability: GHSA-v778-237x-gjrc
-    package:
-      location: "/usr/local/tfenv/versions/1.9.8/terraform"
-  - vulnerability: GHSA-v778-237x-gjrc
-    package:
-      location: "/usr/local/tfenv/versions/1.10.5/terraform"
-  - vulnerability: GHSA-q64h-39hv-4cf7
-    package:
-      location: "/usr/local/tfenv/versions/1.5.7/terraform"
-
-  # ──────────────────────────────────────────────────────────────────────────
-  # 4. System (deb) packages – Ubuntu upstream has not released patched
+  # 2. System (deb) packages – Ubuntu upstream has not released patched
   #    versions for any of these findings.
   #
   #    linux-libc-dev  – kernel header package; CVEs relate to the kernel
