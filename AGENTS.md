@@ -15,7 +15,6 @@
 | Terraform | Managed by `tfenv`; default `1.1.7` (also: 0.12.31, 0.13.7, 0.14.11, 0.15.5, 1.0.11) |
 | kubectl / kubelet / kubeadm | `1.18.8` |
 | Ansible | Latest via `pip3`; galaxy collections pre-installed |
-| govc | `0.27.4` |
 | docker-compose | `1.25.5` |
 | AWS CLI v2 | Latest |
 | AWS Session Manager plugin | Latest |
@@ -25,7 +24,7 @@
 ### Ansible Galaxy Collections (pre-installed)
 
 `community.aws`, `community.azure`, `community.crypto`, `community.general`,
-`community.kubernetes`, `community.network`, `community.vmware`, `community.windows`, `amazon.aws`
+`community.kubernetes`, `community.network`, `community.windows`, `amazon.aws`
 
 ---
 
@@ -86,7 +85,6 @@ ln -s $PWD/run-in-docker.sh ${BIN_DIR}/packer
 ln -s $PWD/run-in-docker.sh ${BIN_DIR}/terraform
 ln -s $PWD/run-in-docker.sh ${BIN_DIR}/devops-shell
 ln -s $PWD/run-in-docker.sh ${BIN_DIR}/kubectl
-ln -s $PWD/run-in-docker.sh ${BIN_DIR}/govc
 ```
 
 Any executable available inside the container can be proxied this way — just symlink `run-in-docker.sh` to any name in `$PATH`.

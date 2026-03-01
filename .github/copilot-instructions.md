@@ -62,9 +62,8 @@ docker pull ghcr.io/locus313/docker-devops-box:latest               # pull from 
 |---|---|
 | Terraform (via `tfenv`) | default `1.1.7`; also 0.12.31, 0.13.7, 0.14.11, 0.15.5, 1.0.11 |
 | kubectl / kubelet / kubeadm | `1.18.8` (held with `apt-mark hold`) |
-| govc | `0.27.4` |
 | docker-compose | `1.25.5` |
-| Ansible | latest pip3; galaxy collections: `community.aws`, `community.vmware`, `amazon.aws`, etc. |
+| Ansible | latest pip3; galaxy collections: `community.aws`, `amazon.aws`, etc. |
 
 ## Adding a New Tool
 

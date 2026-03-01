@@ -44,8 +44,6 @@ RUN pip3 install --upgrade \
   paramiko \
   setuptools \
   requests \
-  pyVim \
-  PyVmomi \
   pywinrm \
   six \
   boto \
@@ -54,11 +52,6 @@ RUN pip3 install --upgrade \
   docker \
   jsondiff \
   PyYAML
-RUN pip3 install --upgrade git+https://github.com/vmware/vsphere-automation-sdk-python.git
-RUN pip3 install --upgrade pyvcloud
-
-# install govc
-RUN curl -L https://github.com/vmware/govmomi/releases/download/v0.27.4/govc_Linux_x86_64.tar.gz | gunzip > /usr/local/bin/govc
 
 # install docker
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - \
@@ -223,7 +216,6 @@ RUN /usr/local/bin/ansible-galaxy collection install \
   community.general \
   community.kubernetes \
   community.network \
-  community.vmware \
   community.windows \
   amazon.aws
 
