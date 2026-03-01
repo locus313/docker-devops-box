@@ -13,6 +13,7 @@ on:
 permissions:
   contents: read
   packages: write
+  security-events: write
 
 jobs:
   build:
@@ -38,6 +39,21 @@ jobs:
           context: .
           file: ./Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
+          load: true
           tags: ghcr.io/locus313/docker-devops-box:latest
           cache-from: type=registry,ref=ghcr.io/locus313/docker-devops-box:buildcache
           cache-to: type=registry,ref=ghcr.io/locus313/docker-devops-box:buildcache,mode=max
+
+      - name: Scan image with Grype
+        uses: anchore/scan-action@v3
+        id: scan
+        with:
+          image: ghcr.io/locus313/docker-devops-box:latest
+          fail-build: true
+          severity-cutoff: critical
+
+      - name: Upload SARIF report to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
