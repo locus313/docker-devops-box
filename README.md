@@ -32,7 +32,7 @@ proxies execution into the container, mapping the host filesystem automatically.
 | Component | Version |
 |---|---|
 | Ubuntu | 24.04 LTS |
-| Python | 3 (preferred), 2.7 (fallback) |
+| Python | 3 (`python3`, `python-is-python3`; no Python 2.7) |
 | zsh + oh-my-zsh | latest (bira theme) |
 
 ### DevOps Tools
@@ -282,7 +282,7 @@ The launcher automatically selects a mount strategy based on where you are in th
 | Context | Host mount | Container path | Write access |
 |---|---|---|---|
 | Inside `$HOME` | `$HOME` | `/home/<basename of HOME>` | Full read/write |
-| Outside `$HOME` | `$HOME` → `/host/home/<basename>` + `$PWD` → `/host/current` | `/host/current` | User home read-only; `$PWD` writable |
+| Outside `$HOME` | `$HOME` → `/home/<basename>` (read-only) + `$PWD` → `/host/current` (writable) | `/host/current` | User home read-only; `$PWD` writable |
 
 To allow writable host root when outside `$HOME`:
 

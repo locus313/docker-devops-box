@@ -8,7 +8,7 @@ A portable DevOps toolbox delivered as a Docker image (`ghcr.io/locus313/docker-
 
 | File | Role |
 |---|---|
-| `Dockerfile` | Ubuntu 20.04; all tool installs; non-root `devops` user; zsh + oh-my-zsh; `entrypoint.sh` as `ENTRYPOINT`, default `CMD ["zsh"]` |
+| `Dockerfile` | Ubuntu 24.04 (multi-stage: `downloader` + `runtime`); all tool installs; non-root `devops` user; zsh + oh-my-zsh; `entrypoint.sh` as `ENTRYPOINT`, default `CMD ["zsh"]` |
 | `run-in-docker.sh` | Host launcher: detects tool name via `basename $0`, sources matching `opts/<cmd>`, then runs `docker run -it --rm` |
 | `entrypoint.sh` | Container entry: symlinks every dotfile from `/home/$HOST_USER` into `/home/devops` (skips existing), then `exec "$@"` |
 | `opts/<name>` | Bash snippet sourced by `run-in-docker.sh`; can set `CMD`, append `DOCKER_OPTS`, define `cleanup()` |
@@ -39,13 +39,13 @@ Examples: `opts/devops-shell` (sets `CMD=zsh`), `opts/run-my-bash` (sets `CMD=ba
 | Context | Host home mount | CWD inside container |
 |---|---|---|
 | `$PWD` inside `$HOME` | `$HOME → /home/<basename of HOME>` | mirrors host sub-path (full read/write) |
-| `$PWD` outside `$HOME` | `$HOME → /host/home/<basename>` (read-only root + writable `$PWD → /host/current`) | `/host/current` |
+| `$PWD` outside `$HOME` | `$HOME → /home/<basename>` (read-only) + `$PWD → /host/current` (writable) | `/host/current` |
 
 Set `UNSAFE_WRITE_ROOT=true` to make the host root writable when outside `$HOME`.
 
 ## entrypoint.sh Dotfile Behaviour
 
-On every container start, `entrypoint.sh` iterates `ls -a1 /home/$HOST_USER` and symlinks each entry into `/home/devops/`, skipping `.`, `..`, and paths that already exist. This makes host dotfiles (`.ssh`, `.aws`, `.kube`, `.gitconfig`, etc.) available inside the container automatically.
+On every container start, `entrypoint.sh` uses `find /home/$HOST_USER -maxdepth 1 -mindepth 1 -print0` to iterate entries and symlinks each into `/home/devops/`, skipping paths that already exist. This makes host dotfiles (`.ssh`, `.aws`, `.kube`, `.gitconfig`, etc.) available inside the container automatically.
 
 ## Build & CI
 
@@ -54,7 +54,7 @@ docker build --rm -t ghcr.io/locus313/docker-devops-box:latest .   # local build
 docker pull ghcr.io/locus313/docker-devops-box:latest               # pull from GHCR
 ```
 
-`.github/workflows/build.yml`: builds on every push/PR (ignores `**/*.md` changes); **pushes only when `github.event_name != 'pull_request'`** (i.e., on merge to `main`). Uses `buildcache` tag for layer caching. Requires repo secret `PAT` (GitHub PAT with `write:packages` and `read:packages`).
+`.github/workflows/build.yml`: builds on every push/PR (ignores `**/*.md` changes); on merge to `main` runs [Anchore Grype](https://github.com/anchore/grype) vulnerability scan (fails on critical CVEs, uploads SARIF to GitHub Security) then pushes `latest` + SHA tags; **pushes only when `github.event_name != 'pull_request'`**. Uses `buildcache` tag for layer caching. Requires repo secret `PAT` (GitHub PAT with `write:packages` and `read:packages`).
 
 ## Pinned Tool Versions (Dockerfile)
 
@@ -64,6 +64,9 @@ docker pull ghcr.io/locus313/docker-devops-box:latest               # pull from 
 | kubectl / kubelet / kubeadm | `1.33` latest patch via `pkgs.k8s.io` (held with `apt-mark hold`) |
 | docker-compose | `2.x` (Docker Compose v2 plugin, symlinked) |
 | Ansible | latest pip3; galaxy collections: `community.aws`, `amazon.aws`, etc. |
+| AWS CLI v2 | latest (downloaded in `downloader` stage) |
+| AWS Session Manager Plugin | latest (`.deb` installed from S3) |
+| consul / nomad / packer | latest (HashiCorp apt repo) |
 
 ## Adding a New Tool
 

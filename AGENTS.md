@@ -4,7 +4,7 @@
 
 **docker-devops-box** is a portable DevOps toolbox delivered as a Docker image (`ghcr.io/locus313/docker-devops-box:latest`). Rather than installing CLI tools on the host, `run-in-docker.sh` is symlinked to each tool name and transparently proxies execution into the container, mapping the host filesystem automatically.
 
-**Base image:** Ubuntu 20.04  
+**Base image:** Ubuntu 24.04 (multi-stage build: `downloader` + `runtime`)  
 **Container user:** `devops` (non-root, runs zsh + oh-my-zsh)  
 **Registry:** GitHub Container Registry (`ghcr.io/locus313/docker-devops-box`)
 
@@ -19,7 +19,7 @@
 | AWS CLI v2 | Latest |
 | AWS Session Manager plugin | Latest |
 | consul / nomad / packer | Latest via HashiCorp apt repo |
-| Python | Python 3.8 (preferred), Python 2.7 (fallback) |
+| Python | Python 3 (`python3`, `python-is-python3`; no Python 2.7) |
 
 ### Ansible Galaxy Collections (pre-installed)
 
@@ -31,10 +31,9 @@
 ## Repository Structure
 
 ```
-Dockerfile          # Image definition; installs all tools; runs as non-root devops user
+Dockerfile          # Multi-stage image build (downloader → runtime); non-root devops user
 entrypoint.sh       # Container entrypoint; symlinks host $HOME dotfiles into container home
 run-in-docker.sh    # Host-side launcher; reads basename $0 to determine container command
-local.conf          # Fonts config (used by commented-out X11 features)
 opts/               # Per-command bash snippets sourced by run-in-docker.sh
   devops-shell      # Drops into interactive zsh shell
   google-chrome     # Adds seccomp profile; overrides CMD to zsh
@@ -146,7 +145,7 @@ To add a new alias or override, create `opts/<toolname>` with the appropriate ex
 | Context | Host mount | Container path | Notes |
 |---|---|---|---|
 | Inside `$HOME` | `$HOME` | `/home/<basename>` | Full read/write; `$REMOTE_PWD` mirrors sub-path |
-| Outside `$HOME` | `$HOME` | `/host/home/<basename>` | User home mapped; `$PWD` → `/host/current` (writable); host root read-only |
+| Outside `$HOME` | `$HOME` | `/home/<basename>` (read-only) + `$PWD` → `/host/current` (writable) | CWD is `/host/current`; host root read-only |
 
 To allow writable host root when outside `$HOME`:
 
@@ -176,7 +175,7 @@ UNSAFE_WRITE_ROOT=true <tool> [args]
 The workflow in `.github/workflows/build.yml` runs on every push and pull request targeting `main`:
 
 - **On PRs**: builds the image only (no push).
-- **On merge to `main`**: builds and pushes `ghcr.io/locus313/docker-devops-box:latest` to GHCR.
+- **On merge to `main`**: builds → runs [Anchore Grype](https://github.com/anchore/grype) vulnerability scan (fails on critical CVEs, uploads SARIF to GitHub Security) → pushes `latest` + SHA tags to GHCR.
 - **Registry cache**: uses `ghcr.io/locus313/docker-devops-box:buildcache` to speed up rebuilds.
 - **Skipped for**: changes to `**/*.md` files (`paths-ignore`).
 
@@ -218,7 +217,7 @@ Available pre-installed: `0.12.31`, `0.14.11`, `1.5.7`, `1.9.8`, `1.10.5`, `1.11
 - The Docker socket (`/var/run/docker.sock`) is always mounted, allowing Docker-in-Docker operations.
 - `UNSAFE_WRITE_ROOT=true` should only be set when write access to the host root is explicitly required.
 - Do not bake secrets or credentials into `Dockerfile` or `opts/` files. Use environment variables or mounted credential files instead.
-- Container images use Ubuntu 20.04 — periodically review and update base image and tool versions for security patches.
+- Container images use Ubuntu 24.04 — periodically review and update base image and tool versions for security patches.
 
 ---
 
