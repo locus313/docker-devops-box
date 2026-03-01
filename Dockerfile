@@ -67,14 +67,14 @@ RUN curl -L "https://github.com/docker/compose/releases/download/1.25.5/docker-c
   && chmod +x /usr/local/bin/docker-compose
 
 # install k8s tools
-ARG K8S_VERSION=1.18.8
-RUN curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
-  && add-apt-repository "deb https://apt.kubernetes.io/ kubernetes-xenial main" \
+ARG K8S_VERSION=1.32
+RUN mkdir -p /etc/apt/keyrings \
+  && curl -fsSL https://pkgs.k8s.io/core:/stable:/v${K8S_VERSION}/deb/Release.key \
+    | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg \
+  && echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v${K8S_VERSION}/deb/ /" \
+    > /etc/apt/sources.list.d/kubernetes.list \
   && apt-get update \
-  && apt-get install -yq \
-    kubelet=${K8S_VERSION}-00 \
-    kubeadm=${K8S_VERSION}-00 \
-    kubectl=${K8S_VERSION}-00 \
+  && apt-get install -yq kubelet kubeadm kubectl \
   && apt-mark hold kubelet kubeadm kubectl \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* \
